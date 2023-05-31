@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import PromptCard from "./PromptCard";
 
 const PromptCardList = ({ data, handleTagClick }) => {
@@ -23,7 +23,7 @@ const Feed = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const response = await fetch("/api/prompt", {
         method: "GET",
@@ -42,14 +42,14 @@ const Feed = () => {
       setError("Failed to fetch data");
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchPosts();
 
     const interval = setInterval(fetchPosts, 5000); // Fetch posts every 5 seconds
     return () => clearInterval(interval); // Clean up the interval on component unmount
-  }, []);
+  }, [fetchPosts]);
 
   const filterPrompts = (searchText) => {
     const regex = new RegExp(searchText, "i");
