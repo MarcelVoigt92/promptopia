@@ -20,17 +20,31 @@ const Feed = () => {
   const [allPosts, setAllPosts] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [searchedResults, setSearchedResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchPosts = async () => {
-    const response = await fetch(
-      "https://promptopia-pi-one.vercel.app/api/prompt",
-      {
-        method: "GET",
-        headers: { "Cache-Control": "no-store" },
+    try {
+      const response = await fetch(
+        "https://promptopia-pi-one.vercel.app/api/prompt",
+        {
+          method: "GET",
+          headers: { "Cache-Control": "no-store" },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch data");
       }
-    );
-    const data = await response.json();
-    setAllPosts(data);
+
+      const data = await response.json();
+      setAllPosts(data);
+      setLoading(false);
+      setError(null);
+    } catch (error) {
+      setError("Failed to fetch data");
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -40,8 +54,8 @@ const Feed = () => {
     return () => clearInterval(interval); // Clean up the interval on component unmount
   }, []);
 
-  const filterPrompts = (searchtext) => {
-    const regex = new RegExp(searchtext, "i");
+  const filterPrompts = (searchText) => {
+    const regex = new RegExp(searchText, "i");
     return allPosts.filter(
       (item) =>
         regex.test(item.creator.username) ||
@@ -63,6 +77,14 @@ const Feed = () => {
     const searchResult = filterPrompts(tagName);
     setSearchedResults(searchResult);
   };
+
+  if (loading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>Error: {error}</p>;
+  }
 
   return (
     <section className="feed">
