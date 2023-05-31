@@ -1,7 +1,4 @@
-"use client";
-
 import { useState, useEffect } from "react";
-
 import PromptCard from "./PromptCard";
 
 const PromptCardList = ({ data, handleTagClick }) => {
@@ -18,32 +15,13 @@ const PromptCardList = ({ data, handleTagClick }) => {
   );
 };
 
-const Feed = () => {
-  const [allPosts, setAllPosts] = useState([]);
-
-  // Search states
+const Feed = ({ allPosts }) => {
   const [searchText, setSearchText] = useState("");
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [searchedResults, setSearchedResults] = useState([]);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      const response = await fetch(
-        "https://promptopia-pi-one.vercel.app/api/prompt",
-        {
-          method: "GET",
-          headers: { "Cache-Control": "no-store" },
-        }
-      );
-      const data = await response.json();
-
-      setAllPosts(data);
-    };
-    fetchPosts();
-  }, []);
-
   const filterPrompts = (searchtext) => {
-    const regex = new RegExp(searchtext, "i"); // 'i' flag for case-insensitive search
+    const regex = new RegExp(searchtext, "i");
     return allPosts.filter(
       (item) =>
         regex.test(item.creator.username) ||
@@ -56,7 +34,6 @@ const Feed = () => {
     clearTimeout(searchTimeout);
     setSearchText(e.target.value);
 
-    // debounce method
     setSearchTimeout(
       setTimeout(() => {
         const searchResult = filterPrompts(e.target.value);
@@ -85,7 +62,6 @@ const Feed = () => {
         />
       </form>
 
-      {/* All Prompts */}
       {searchText ? (
         <PromptCardList
           data={searchedResults}
@@ -97,5 +73,22 @@ const Feed = () => {
     </section>
   );
 };
+
+export async function getServerSideProps() {
+  const response = await fetch(
+    "https://promptopia-pi-one.vercel.app/api/prompt",
+    {
+      method: "GET",
+      headers: { "Cache-Control": "no-store" },
+    }
+  );
+  const allPosts = await response.json();
+
+  return {
+    props: {
+      allPosts,
+    },
+  };
+}
 
 export default Feed;
