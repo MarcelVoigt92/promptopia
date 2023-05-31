@@ -25,13 +25,10 @@ const Feed = () => {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch(
-        "https://promptopia-pi-one.vercel.app/api/prompt",
-        {
-          method: "GET",
-          headers: { "Cache-Control": "no-store" },
-        }
-      );
+      const response = await fetch("/api/prompt", {
+        method: "GET",
+        headers: { "Cache-Control": "no-store" },
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch data");
