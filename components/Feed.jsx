@@ -15,10 +15,29 @@ const PromptCardList = ({ data, handleTagClick }) => {
   );
 };
 
-const Feed = ({ allPosts }) => {
+const Feed = () => {
+  const [allPosts, setAllPosts] = useState([]);
   const [searchText, setSearchText] = useState("");
-  const [searchTimeout, setSearchTimeout] = useState(null);
   const [searchedResults, setSearchedResults] = useState([]);
+
+  const fetchPosts = async () => {
+    const response = await fetch(
+      "https://promptopia-pi-one.vercel.app/api/prompt",
+      {
+        method: "GET",
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
+    const data = await response.json();
+    setAllPosts(data);
+  };
+
+  useEffect(() => {
+    fetchPosts();
+
+    const interval = setInterval(fetchPosts, 5000); // Fetch posts every 5 seconds
+    return () => clearInterval(interval); // Clean up the interval on component unmount
+  }, []);
 
   const filterPrompts = (searchtext) => {
     const regex = new RegExp(searchtext, "i");
@@ -31,15 +50,10 @@ const Feed = ({ allPosts }) => {
   };
 
   const handleSearchChange = (e) => {
-    clearTimeout(searchTimeout);
     setSearchText(e.target.value);
 
-    setSearchTimeout(
-      setTimeout(() => {
-        const searchResult = filterPrompts(e.target.value);
-        setSearchedResults(searchResult);
-      }, 500)
-    );
+    const searchResult = filterPrompts(e.target.value);
+    setSearchedResults(searchResult);
   };
 
   const handleTagClick = (tagName) => {
@@ -62,6 +76,7 @@ const Feed = ({ allPosts }) => {
         />
       </form>
 
+      {/* All Prompts */}
       {searchText ? (
         <PromptCardList
           data={searchedResults}
@@ -73,22 +88,5 @@ const Feed = ({ allPosts }) => {
     </section>
   );
 };
-
-export async function getServerSideProps() {
-  const response = await fetch(
-    "https://promptopia-pi-one.vercel.app/api/prompt",
-    {
-      method: "GET",
-      headers: { "Cache-Control": "no-store" },
-    }
-  );
-  const allPosts = await response.json();
-
-  return {
-    props: {
-      allPosts,
-    },
-  };
-}
 
 export default Feed;
